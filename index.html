@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página Random</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f9;
+            margin: 0;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            background-color: #6200ea;
+            color: white;
+            border-radius: 8px;
+        }
+
+        button:hover {
+            background-color: #3700b3;
+        }
+
+        input[type="number"] {
+            margin-bottom: 20px;
+            padding: 10px;
+            font-size: 16px;
+            width: 100px;
+            text-align: center;
+        }
+
+        /* Botón en la parte superior izquierda */
+        .reload-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background-color: #ff5722;
+            color: white;
+            border-radius: 5px;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            display: none; /* Inicialmente oculto */
+        }
+
+        .reload-btn:hover {
+            background-color: #e64a19;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Casilla de número de sitios a abrir -->
+    <input type="number" id="pageCount" placeholder="Cantidad" min="1" value="1">
+
+    <!-- Botón principal para ir a un sitio random -->
+    <button onclick="redirectMultiple()">Ir a sitios random</button>
+
+    <!-- Botón de recargar en la parte superior izquierda -->
+    <button class="reload-btn" id="reload-btn" onclick="reloadPage()">Recargar</button>
+
+    <script>
+        async function redirectMultiple() {
+            const pageCount = document.getElementById('pageCount').value || 1; // Cantidad de páginas a abrir
+            for (let i = 0; i < pageCount; i++) {
+                await delay(500); // Retraso de 500ms entre cada apertura
+                redirectRandom();
+            }
+        }
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function redirectRandom() {
+            const consonants = 'bcdfghjklmnpqrstvwxyz';
+            const vowels = 'aeiou';
+            const domains = ['.net', '.org', '.is', '.io', '.xyz', '.club', '.info', '.me'];
+
+            const blockedDomains = ['godaddy', 'squarespace']; // Lista de dominios o palabras clave bloqueadas
+
+            let foundValidUrl = false;
+
+            while (!foundValidUrl) {
+                let randomString = '';
+                for (let i = 0; i < 6; i++) {
+                    if (i % 2 === 0) {
+                        randomString += consonants[Math.floor(Math.random() * consonants.length)];
+                    } else {
+                        randomString += vowels[Math.floor(Math.random() * vowels.length)];
+                    }
+                }
+
+                const randomDomain = domains[Math.floor(Math.random() * domains.length)];
+                const randomUrl = `https://www.${randomString}${randomDomain}`;
+
+                // Verificar si la URL contiene dominios bloqueados
+                if (blockedDomains.some(blocked => randomUrl.includes(blocked))) {
+                    console.log(`Dominio bloqueado: ${randomUrl}, intentando de nuevo...`);
+                    continue; // Saltar si la URL está bloqueada
+                }
+
+                try {
+                    // Verificar si el sitio existe antes de abrirlo
+                    const response = await fetch(randomUrl, { method: 'HEAD', mode: 'no-cors' });
+                    if (response.ok || response.type === 'opaque') {
+                        window.open(randomUrl, '_blank'); // Abrir el sitio en una nueva pestaña
+                        foundValidUrl = true;
+                    } else {
+                        throw new Error("No se pudo conectar al sitio.");
+                    }
+                } catch (error) {
+                    console.log(`Falló: ${randomUrl}, intentando de nuevo...`);
+                    // Activar el botón de recarga si falla
+                    document.getElementById('reload-btn').style.display = 'block';
+                }
+            }
+        }
+
+        // Función para recargar la página
+        function reloadPage() {
+            location.reload();
+        }
+    </script>
+
+</body>
+</html>
